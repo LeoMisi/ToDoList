@@ -1,4 +1,5 @@
 import db from "../config/database.js";
+import createTask from "../models/taskModels.js";
 
 const getAllTasks = (req, res) => {
 	const query = `SELECT * FROM tasks`;
@@ -25,17 +26,21 @@ const getTaskById = (req, res) => {
 	});
 };
 
-const createNewTask = (req, res) => {
+const createNewTask = async (req, res) => {
 	const { title, description, status } = req.body;
-	const insertQuery = "INSERT INTO tasks (title, description, status) VALUES(?,?,?)";
+	const newTask = {
+		title,
+		description,
+		status,
+	};
 
-	db.all(insertQuery, [title, description, status], (err) => {
-		if (err) {
-			console.error("Erro ao criar tarefa:", err.message);
-			return res.status(500).json({ error: "Erro ao buscar tarefas" });
-		}
-		res.status(200).json({ message: "Row was added to the table" });
-	});
+	try {
+		const task = await createTask(newTask);
+		res.status(201).json({ message: "Record has been created" });
+	} catch (error) {
+		console.error("Erro ao criar tarefa:", error.message);
+		res.status(500).json({ error: "Erro ao criar a task" });
+	}
 };
 
 const deleteTaskById = (req, res) => {
@@ -51,4 +56,39 @@ const deleteTaskById = (req, res) => {
 	});
 };
 
-export { getAllTasks, getTaskById, createNewTask, deleteTaskById };
+const updateTaskById = (req, res) => {
+	const { id } = req.params;
+	const { title, description, status } = req.body;
+	const updateQuery = `UPDATE tasks SET title = ?, description = ?, status = ? WHERE id = ?`;
+
+	db.all(updateQuery, [title, description, status, id], (err) => {
+		if (err) {
+			console.error("Erro ao atualizar a task:", err.message);
+			return res.status(500).json({ error: "Erro ao atualizar a task" });
+		}
+		res.status(200).json({ message: "Row was updated to the table" });
+	});
+};
+
+const finishTaskById = (req, res) => {
+	const { id } = req.params;
+	const date = new Date();
+	const formatedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+		date.getDate()
+	).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(
+		2,
+		"0"
+	)}:${String(date.getSeconds()).padStart(2, "0")}`;
+
+	const updateQuery = `UPDATE tasks SET completed_at = ? WHERE id = ?`;
+
+	db.all(updateQuery, [formatedDate, id], (err) => {
+		if (err) {
+			console.error("Erro ao finalizar a task:", err.message);
+			return res.status(500).json({ error: "Erro ao finalizar a task" });
+		}
+		res.status(200).json({ message: "Row was finished to the table" });
+	});
+};
+
+export { getAllTasks, getTaskById, createNewTask, deleteTaskById, updateTaskById, finishTaskById };

@@ -1,5 +1,12 @@
 import express from "express";
-import { getAllTasks, getTaskById, createNewTask, deleteTaskById } from "../controller/taskController.js";
+import {
+	getAllTasks,
+	getTaskById,
+	createNewTask,
+	deleteTaskById,
+	updateTaskById,
+	finishTaskById,
+} from "../controller/taskController.js";
 
 const app = express.Router();
 
@@ -12,5 +19,9 @@ app.post("/", createNewTask);
 
 // Rotas Delete
 app.delete("/:id", deleteTaskById);
+
+// Rotas Update
+app.put("/:id", updateTaskById);
+app.patch("/:id", finishTaskById);
 
 export default app;
