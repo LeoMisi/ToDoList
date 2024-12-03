@@ -1,29 +1,25 @@
 import db from "../config/database.js";
-import createTask from "../models/taskModels.js";
+import { createNewTaskModel, getAllTasksModel, getTaksByIdModel } from "../models/taskModels.js";
 
-const getAllTasks = (req, res) => {
-	const query = `SELECT * FROM tasks`;
-
-	db.all(query, [], (err, rows) => {
-		if (err) {
-			console.error("Erro ao buscar tarefas:", err.message);
-			return res.status(500).json({ error: "Erro ao buscar tarefas" });
-		}
-		res.status(200).json(rows);
-	});
+const getAllTasks = async (req, res) => {
+	try {
+		const tasks = await getAllTasksModel();
+		res.status(200).json(tasks);
+	} catch (error) {
+		console.error("Erro ao criar tarefa:", error.message);
+		res.status(500).json({ error: "Erro ao buscar tarefas" });
+	}
 };
 
-const getTaskById = (req, res) => {
+const getTaskById = async (req, res) => {
 	const { id } = req.params;
-	const query = `SELECT * FROM tasks WHERE id = ${id}`;
-
-	db.all(query, [], (err, rows) => {
-		if (err) {
-			console.error("Erro ao buscar tarefa:", err.message);
-			return res.status(500).json({ error: "Erro ao buscar tarefas" });
-		}
-		res.status(200).json(rows);
-	});
+	try {
+		const task = await getTaksByIdModel(id);
+		res.status(200).json(task);
+	} catch (error) {
+		console.error("Erro ao criar tarefa:", error.message);
+		res.status(500).json({ error: "Erro ao buscar tarefas" });
+	}
 };
 
 const createNewTask = async (req, res) => {
@@ -35,8 +31,8 @@ const createNewTask = async (req, res) => {
 	};
 
 	try {
-		const task = await createTask(newTask);
-		res.status(201).json({ message: "Record has been created" });
+		const task = await createNewTaskModel(newTask);
+		res.status(201).json({ message: "Record has been created", record: task });
 	} catch (error) {
 		console.error("Erro ao criar tarefa:", error.message);
 		res.status(500).json({ error: "Erro ao criar a task" });
