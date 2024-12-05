@@ -1,5 +1,12 @@
 import db from "../config/database.js";
-import { createNewTaskModel, getAllTasksModel, getTaksByIdModel } from "../models/taskModels.js";
+import {
+	createNewTaskModel,
+	getAllTasksModel,
+	getTasksByIdModel,
+	deleteTaskByIdModel,
+	updateTaskByIdModel,
+	finishTaskByIdModel,
+} from "../models/taskModels.js";
 
 const getAllTasks = async (req, res) => {
 	try {
@@ -14,7 +21,7 @@ const getAllTasks = async (req, res) => {
 const getTaskById = async (req, res) => {
 	const { id } = req.params;
 	try {
-		const task = await getTaksByIdModel(id);
+		const task = await getTasksByIdModel(id);
 		res.status(200).json(task);
 	} catch (error) {
 		console.error("Erro ao criar tarefa:", error.message);
@@ -39,52 +46,55 @@ const createNewTask = async (req, res) => {
 	}
 };
 
-const deleteTaskById = (req, res) => {
+const deleteTaskById = async (req, res) => {
 	const { id } = req.params;
-	const query = `DELETE FROM tasks WHERE id = ${id}`;
 
-	db.all(query, [], (err, rows) => {
-		if (err) {
-			console.error("Erro ao excluir tarefa:", err.message);
-			return res.status(500).json({ error: "Erro ao excluir tarefa" });
-		}
-		res.status(200).json({ message: "Row was deleted to the table" });
-	});
+	try {
+		const task = await deleteTaskByIdModel(id);
+		res.status(200).json({ message: "Record was deleted" });
+	} catch (error) {
+		res.status(500).json({ message: "Error to delete record", error: error.message });
+	}
 };
 
-const updateTaskById = (req, res) => {
+const updateTaskById = async (req, res) => {
 	const { id } = req.params;
 	const { title, description, status } = req.body;
-	const updateQuery = `UPDATE tasks SET title = ?, description = ?, status = ? WHERE id = ?`;
 
-	db.all(updateQuery, [title, description, status, id], (err) => {
-		if (err) {
-			console.error("Erro ao atualizar a task:", err.message);
-			return res.status(500).json({ error: "Erro ao atualizar a task" });
-		}
-		res.status(200).json({ message: "Row was updated to the table" });
-	});
+	const updatedFields = {
+		title,
+		description,
+		status,
+	};
+
+	try {
+		const task = await updateTaskByIdModel(id, updatedFields);
+		res.status(200).json({ Message: "Record was updated" });
+	} catch {
+		res.status(500).json({ Message: "Update record error", Error: error.message });
+	}
 };
 
-const finishTaskById = (req, res) => {
+const finishTaskById = async (req, res) => {
 	const { id } = req.params;
-	const date = new Date();
-	const formatedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-		date.getDate()
-	).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(
-		2,
-		"0"
-	)}:${String(date.getSeconds()).padStart(2, "0")}`;
+	const { completed_at } = req.body;
+	const currentTime = new Date();
+	const timeString = currentTime.toLocaleTimeString("en-US", { hour12: false }).padStart(8, "0");
 
-	const updateQuery = `UPDATE tasks SET completed_at = ? WHERE id = ?`;
+	if (!completed_at) {
+		return res.status(400).json({ message: "The field 'completed_at' is required" });
+	}
 
-	db.all(updateQuery, [formatedDate, id], (err) => {
-		if (err) {
-			console.error("Erro ao finalizar a task:", err.message);
-			return res.status(500).json({ error: "Erro ao finalizar a task" });
+	try {
+		const completedAtWithTime = `${completed_at} ${timeString}`;
+		const task = await finishTaskByIdModel(id, completedAtWithTime);
+		if (!task) {
+			return res.status(404).json({ message: "Task not found" });
 		}
-		res.status(200).json({ message: "Row was finished to the table" });
-	});
+		return res.status(200).json({ Message: "Record is finished" });
+	} catch {
+		return res.status(500).json({ Message: "Error to finish record" });
+	}
 };
 
 export { getAllTasks, getTaskById, createNewTask, deleteTaskById, updateTaskById, finishTaskById };

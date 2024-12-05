@@ -14,7 +14,7 @@ const getAllTasksModel = async () => {
 	});
 };
 
-const getTaksByIdModel = async (id) => {
+const getTasksByIdModel = async (id) => {
 	const query = `SELECT * FROM tasks WHERE id = ${id}`;
 
 	return await new Promise((resolve, reject) => {
@@ -41,4 +41,50 @@ const createNewTaskModel = async (newTask) => {
 	});
 };
 
-export { getAllTasksModel, getTaksByIdModel, createNewTaskModel };
+const deleteTaskByIdModel = async (id) => {
+	const query = `DELETE FROM tasks WHERE id = ${id}`;
+
+	return await new Promise((resolve, reject) => {
+		db.all(query, [], (err, rows) => {
+			if (err) {
+				return reject(err);
+			}
+			resolve(rows);
+		});
+	});
+};
+
+const updateTaskByIdModel = async (id, updatedFields) => {
+	const updateQuery = `UPDATE tasks SET title = ?, description = ?, status = ? WHERE id = ?`;
+
+	return new Promise((resolve, reject) => {
+		db.all(updateQuery, [updatedFields.title, updatedFields.description, updatedFields.status, id], (err, rows) => {
+			if (err) {
+				return reject(err);
+			}
+			resolve(rows);
+		});
+	});
+};
+
+const finishTaskByIdModel = async (id, completed_at) => {
+	const updateQuery = `UPDATE tasks SET completed_at = ? WHERE id = ?`;
+
+	return new Promise((resolve, reject) => {
+		db.all(updateQuery, [completed_at, id], (err, row) => {
+			if (err) {
+				return reject(err);
+			}
+			return resolve(row);
+		});
+	});
+};
+
+export {
+	getAllTasksModel,
+	getTasksByIdModel,
+	createNewTaskModel,
+	deleteTaskByIdModel,
+	updateTaskByIdModel,
+	finishTaskByIdModel,
+};
