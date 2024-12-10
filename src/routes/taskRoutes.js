@@ -7,6 +7,7 @@ import {
 	updateTaskById,
 	finishTaskById,
 } from "../controller/taskController.js";
+import { createNewTaskValidateFields } from "../middleware/taskValidate.js";
 
 const app = express.Router();
 
@@ -15,7 +16,7 @@ app.get("/", getAllTasks);
 app.get("/:id", getTaskById);
 
 // Rotas POST
-app.post("/", createNewTask);
+app.post("/", createNewTaskValidateFields(["title", "description", "status"]), createNewTask);
 
 // Rotas Delete
 app.delete("/:id", deleteTaskById);
