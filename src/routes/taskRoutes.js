@@ -2,6 +2,7 @@ import express from "express";
 import {
 	getAllTasks,
 	getTaskById,
+	getTasksFiltered,
 	createNewTask,
 	deleteTaskById,
 	updateTaskById,
@@ -13,6 +14,7 @@ const app = express.Router();
 
 // Rotas GET
 app.get("/", getAllTasks);
+app.get("/search", getTasksFiltered);
 app.get("/:id", getTaskById);
 
 // Rotas POST

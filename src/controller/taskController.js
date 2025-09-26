@@ -1,8 +1,8 @@
-import db from "../config/database.js";
 import {
 	createNewTaskModel,
 	getAllTasksModel,
 	getTasksByIdModel,
+	getTasksFilteredModel,
 	deleteTaskByIdModel,
 	updateTaskByIdModel,
 	finishTaskByIdModel,
@@ -22,6 +22,23 @@ const getTaskById = async (req, res) => {
 	const { id } = req.params;
 	try {
 		const task = await getTasksByIdModel(id);
+		res.status(200).json(task);
+	} catch (error) {
+		console.error("Erro ao criar tarefa:", error.message);
+		res.status(500).json({ error: "Erro ao buscar tarefas" });
+	}
+};
+
+const getTasksFiltered = async (req, res) => {
+	const { status, title } = req.query;
+
+	const filterObject = {
+		filterKey: status != undefined ? 'status' : 'title',
+		filterValue: status != undefined ? status : title
+	}
+
+	try {
+		const task = await getTasksFilteredModel(filterObject);
 		res.status(200).json(task);
 	} catch (error) {
 		console.error("Erro ao criar tarefa:", error.message);
@@ -97,4 +114,4 @@ const finishTaskById = async (req, res) => {
 	}
 };
 
-export { getAllTasks, getTaskById, createNewTask, deleteTaskById, updateTaskById, finishTaskById };
+export { getAllTasks, getTaskById, getTasksFiltered, createNewTask, deleteTaskById, updateTaskById, finishTaskById };

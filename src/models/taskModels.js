@@ -28,6 +28,20 @@ const getTasksByIdModel = async (id) => {
 	});
 };
 
+const getTasksFilteredModel = async (filterObject) => {
+	const query = `SELECT * FROM tasks WHERE ${filterObject.filterKey} = "${filterObject.filterValue}"`;
+
+	return await new Promise((resolve, reject) => {
+		db.all(query, [], (err, rows) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(rows);
+			}
+		});
+	});
+};
+
 const createNewTaskModel = async (newTask) => {
 	const insertQuery = "INSERT INTO tasks (title, description, status) VALUES(?,?,?)";
 
@@ -83,6 +97,7 @@ const finishTaskByIdModel = async (id, completed_at) => {
 export {
 	getAllTasksModel,
 	getTasksByIdModel,
+	getTasksFilteredModel,
 	createNewTaskModel,
 	deleteTaskByIdModel,
 	updateTaskByIdModel,
